@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Web Scrape Gwapo</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='bootstrap.min.css') }}">
+</head>
+<body>
+    <style>
+        #loading-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 9999;
+        }
+
+        #loading-spinner {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        border: 4px solid #f3f3f3;
+        border-top: 4px solid #3498db;
+        animation: spin 2s linear infinite;
+        }
+
+        @keyframes spin {
+        0% {
+            transform: rotate(0deg);
+        }
+        100% {
+            transform: rotate(360deg);
+        }
+        }
+    </style>
+
+    <div id="app">
+        <div v-if="loading">
+            <div id="loading-overlay">
+                <div id="loading-spinner"></div>
+            </div>
+        </div>
+
+        <div class="container">
+            <h1 class="text-center p-3">Web Scrapper Louise</h1>
+        </div>
+    
+        <div class="container mt-5">
+            <div class="row">
+                <label for="page-num">Enter Page Number:</label>
+                <div class="col">
+                    <input type="text" class="form-control" name="page-num" id="page-num" v-model="page_num">
+                </div>
+                <div class="col">
+                    <button type="submit" class="btn btn-success" v-on:click="fetch_data">Submit</button>
+                </div>
+            </div>
+    
+    
+            <div class="row mt-5">
+                <table class="table">
+                    <thead>
+                      <tr>
+                        <th scope="col">Company Name</th>
+                        <th scope="col">Website</th>
+                        <th scope="col">Telephone</th>
+                        <th scope="col">Number of Ratings</th>
+                        <th scope="col">Address</th>
+                        <th scope="col">Email Address</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr v-for="d in data">
+                        <td>{% raw %} {{ d.company_name }} {% endraw %}</td>
+                        <td>{% raw %} {{ d.website }} {% endraw %}</td>
+                        <td>{% raw %} {{ d.telephone }} {% endraw %}</td>
+                        <td>{% raw %} {{ d.number_of_reviews }} {% endraw %}</td>
+                        <td>{% raw %} {{ d.address }} {% endraw %}</td>
+                        <td>{% raw %} {{ d.email }} {% endraw %}</td>
+                      </tr>
+                    </tbody>
+                  </table>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='axios.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='vue.global.js') }}"></script>
+
+
+    <script>
+        const { createApp } = Vue
+
+        createApp({
+            data() {
+                return {
+                    loading: false,
+                    page_num: 0,
+                    data: []
+                }
+            },
+
+            methods: {
+                async fetch_data() {
+                    const url = window.location.origin + '/api'
+
+                    this.loading = true
+                    const formData = new FormData();
+
+                    this.page_num = +  this.page_num
+
+                    formData.append('page_num', this.page_num);
+
+                    axios.post(url, formData, {
+                        headers: {
+                            accept: 'application/json'
+                        }
+                    })
+                    .then(response => {
+                        this.data = response.data
+                        this.loading = false
+                    })
+
+                }
+            }
+        }).mount('#app')
+    </script>
+</body>
+</html>
